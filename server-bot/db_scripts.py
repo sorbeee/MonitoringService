@@ -15,17 +15,21 @@
 # );
 #
 # CREATE TABLE DeviceResources (
-#     device_id INTEGER REFERENCES Device(id),
-#     cpu_used VARCHAR(255),
-#     memory_used VARCHAR(255),
-#     cpu_model VARCHAR(255),
-#     cpu_cores INTEGER,
-#     video_driver_model VARCHAR(255),
-#     disks VARCHAR(255),
-#     charge VARCHAR(255),
-#     time_left VARCHAR(255),
-#     boot_time TIMESTAMP,
-#     request_time TIMESTAMP
+#   device_id INTEGER REFERENCES Device(id),
+# 	system VARCHAR(255),
+# 	video_driver_model VARCHAR(255),
+#   cpu_model VARCHAR(255),
+#   cpu_used VARCHAR(255),
+# 	physical_cores INTEGER,
+#   total_cores INTEGER,
+# 	cores_used VARCHAR(1024),
+#   total_ram VARCHAR(255),
+# 	used_free_ram VARCHAR(255),
+#   disks VARCHAR(1024),
+#   charge VARCHAR(255),
+#   time_left VARCHAR(255),
+#   boot_time TIMESTAMP,
+#   request_time TIMESTAMP
 # );
 
 from config import *
@@ -35,7 +39,6 @@ DEVICE_TABLE_NAME = 'Device'
 ID = 'id'
 DEVICE_NAME = 'name'
 DEVICE_IP = 'ip'
-DEVICE_CAN_GET_INFO = 'can_get_info'
 DEVICE_NOTIFICATION = 'notification'
 
 DEVICE_ACTIVITY_TABLE_NAME = 'DeviceActivity'
@@ -45,11 +48,15 @@ LAST_PING = 'last_ping'
 LAST_TIME_ONLINE = 'last_time_online'
 
 DEVICE_RESOURCES_TABLE_NAME = 'DeviceResources'
-CPU_USED = 'cpu_used'
-MEMORY_USED = 'memory_used'
-CPU_MODEL = 'cpu_model'
-CPU_CORES = 'cpu_cores'
+SYSTEM = 'system'
 DRIVER_MODEL = 'video_driver_model'
+CPU_MODEL = 'cpu_model'
+CPU_USED = 'cpu_used'
+PHYSICAL_CORES = 'physical_cores'
+CORES_USED = 'cores_used'
+TOTAL_CORES = 'total_cores'
+TOTAL_RAM = 'total_ram'
+USED_FREE_RAM = 'used_free_ram'
 DISKS = 'disks'
 CHARGE = 'charge'
 TIME_LEFT = 'time_left'
@@ -82,17 +89,17 @@ def select_all_devices():
         print(str(ex))
 
 
-def insert_device(name, ip, can_get_info, notification):
+def insert_device(name, ip, notification):
     try:
         with connection.cursor() as cursor:
             insert_query = 'INSERT INTO ' + DEVICE_TABLE_NAME + \
-                           '(' + DEVICE_NAME + ', ' + \
-                            DEVICE_IP + ', ' + \
-                            DEVICE_CAN_GET_INFO + ', ' + \
-                            DEVICE_NOTIFICATION + \
-                           ') VALUES (\'%s\', \'%s\', %s, %s);'
+                           '(' + \
+                           DEVICE_NAME + ', ' + \
+                           DEVICE_IP + ', ' + \
+                           DEVICE_NOTIFICATION + \
+                           ') VALUES (\'%s\', \'%s\', %s);'
 
-            cursor.execute(insert_query % (name, ip, can_get_info, notification))
+            cursor.execute(insert_query % (name, ip, notification))
             connection.commit()
             print("[INFO] Data was added")
     except Exception as ex:
@@ -129,11 +136,11 @@ def update_activity(id, is_online, last_ping, last_time_online):
     try:
         with connection.cursor() as cursor:
             update_query = 'UPDATE ' + DEVICE_ACTIVITY_TABLE_NAME + \
-                ' SET ' + \
-                IS_ONLINE + ' = ' + '%s, ' + \
-                LAST_PING + ' = ' + ' \'%s\', ' + \
-                LAST_TIME_ONLINE + ' = ' + ' \'%s\'' + \
-                'WHERE ' + DEVICE_ID + ' = %d;'
+                           ' SET ' + \
+                           IS_ONLINE + ' = ' + '%s, ' + \
+                           LAST_PING + ' = ' + ' \'%s\', ' + \
+                           LAST_TIME_ONLINE + ' = ' + ' \'%s\'' + \
+                           'WHERE ' + DEVICE_ID + ' = %d;'
             cursor.execute(update_query % (is_online, last_ping, last_time_online, id))
             connection.commit()
             print("[INFO] Data was updated")
@@ -144,7 +151,9 @@ def update_activity(id, is_online, last_ping, last_time_online):
 def select_activity(id):
     try:
         with connection.cursor() as cursor:
-            select_query = 'SELECT * FROM ' + DEVICE_ACTIVITY_TABLE_NAME + ' WHERE ' + DEVICE_ID + ' = %d;'
+            select_query = 'SELECT * FROM ' + \
+                           DEVICE_ACTIVITY_TABLE_NAME + \
+                           ' WHERE ' + DEVICE_ID + ' = %d;'
             cursor.execute(select_query % id)
             return cursor.fetchall()
     except Exception as ex:
@@ -152,37 +161,51 @@ def select_activity(id):
 
 
 def insert_resources(id,
-                     cpu_used,
-                     memory_used,
-                     cpu_model,
-                     cpu_cores,
+                     system,
                      video_driver_model,
+                     cpu_model,
+                     cpu_used,
+                     physical_cores,
+                     total_cores,
+                     cores_used,
+                     total_ram,
+                     used_free_ram,
                      disks,
                      charge,
                      time_left,
                      boot_time,
                      request_time):
+    insert_query = 'INSERT INTO ' + DEVICE_RESOURCES_TABLE_NAME + '(' + \
+                   DEVICE_ID + ', ' + \
+                   SYSTEM + ', ' + \
+                   DRIVER_MODEL + ', ' + \
+                   CPU_MODEL + ', ' + \
+                   CPU_USED + ', ' + \
+                   PHYSICAL_CORES + ', ' + \
+                   TOTAL_CORES + ', ' + \
+                   CORES_USED + ', ' + \
+                   TOTAL_RAM + ', ' + \
+                   USED_FREE_RAM + ', ' + \
+                   DISKS + ', ' + \
+                   CHARGE + ', ' + \
+                   TIME_LEFT + ', ' + \
+                   BOOT_TIME + ', ' + \
+                   REQUEST_TIME + \
+                   ') VALUES(' \
+                   '%d, \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', ' \
+                   '\'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\');'
     try:
         with connection.cursor() as cursor:
-            insert_query = 'INSERT INTO ' + DEVICE_RESOURCES_TABLE_NAME + '(' + \
-                DEVICE_ID + ', ' + \
-                CPU_USED + ', ' + \
-                MEMORY_USED + ', ' + \
-                CPU_MODEL + ', ' + \
-                CPU_CORES + ', ' + \
-                DRIVER_MODEL + ', ' + \
-                DISKS + ', ' + \
-                CHARGE + ', ' + \
-                TIME_LEFT + ', ' + \
-                BOOT_TIME + ', ' + \
-                REQUEST_TIME + \
-                ') VALUES(%d, \'%s\', \'%s\', \'%s\', %d, \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\');'
             cursor.execute(insert_query % (id,
-                                           cpu_used,
-                                           memory_used,
-                                           cpu_model,
-                                           cpu_cores,
+                                           system,
                                            video_driver_model,
+                                           cpu_model,
+                                           cpu_used,
+                                           physical_cores,
+                                           total_cores,
+                                           cores_used,
+                                           total_ram,
+                                           used_free_ram,
                                            disks,
                                            charge,
                                            time_left,
@@ -190,5 +213,70 @@ def insert_resources(id,
                                            request_time))
             connection.commit()
         print("[INFO] Data was added")
+    except Exception as ex:
+        print(str(ex))
+
+
+def select_all_activity():
+    try:
+        with connection.cursor() as cursor:
+            select_query = 'SELECT ' + \
+                           DEVICE_NAME + ', ' + \
+                           DEVICE_IP + ', ' + \
+                           IS_ONLINE + ', ' + \
+                           LAST_TIME_ONLINE + ', ' + \
+                           DEVICE_NOTIFICATION + \
+                           ' FROM ' + \
+                           DEVICE_ACTIVITY_TABLE_NAME + \
+                           ' JOIN ' + \
+                           DEVICE_TABLE_NAME + \
+                           ' ON ' + \
+                           ID + ' = ' + DEVICE_ID + ';'
+            cursor.execute(select_query)
+            return cursor.fetchall()
+    except Exception as ex:
+        print(str(ex))
+
+
+def select_all_resources(id):
+    try:
+        select_query = 'SELECT ' + \
+                       DEVICE_NAME + ', ' + \
+                       DEVICE_IP + ', ' + \
+                       SYSTEM + ', ' + \
+                       DRIVER_MODEL + ', ' + \
+                       CPU_MODEL + ', ' + \
+                       CPU_USED + ', ' + \
+                       PHYSICAL_CORES + ', ' + \
+                       TOTAL_CORES + ', ' + \
+                       CORES_USED + ', ' + \
+                       TOTAL_RAM + ', ' + \
+                       USED_FREE_RAM + ', ' + \
+                       DISKS + ', ' + \
+                       CHARGE + ', ' + \
+                       TIME_LEFT + ', ' + \
+                       BOOT_TIME + ', ' + \
+                       REQUEST_TIME + \
+                       ' FROM ' + \
+                       DEVICE_RESOURCES_TABLE_NAME + \
+                       ' JOIN ' + \
+                       DEVICE_TABLE_NAME + \
+                       ' ON ' + \
+                       ID + ' = ' + DEVICE_ID + \
+                       ' WHERE  ' + DEVICE_ID + ' = ' + str(id) + \
+                       ' ORDER BY ' + REQUEST_TIME + ' DESC;'
+        with connection.cursor() as cursor:
+            cursor.execute(select_query)
+            return cursor.fetchall()
+    except Exception as ex:
+        print(str(ex))
+
+
+def select_ids():
+    try:
+        select_query = 'SELECT ' + ID + ' FROM ' + DEVICE_TABLE_NAME + ';'
+        with connection.cursor() as cursor:
+            cursor.execute(select_query)
+            return cursor.fetchall()
     except Exception as ex:
         print(str(ex))

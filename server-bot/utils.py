@@ -27,29 +27,23 @@ def execute_ping():
 
 def store_info(msg):
     data = json.loads(msg)
+    disks = ''
 
-    device_id = data['device_id']
-    cpu_used = data['cpu_used']
-    memory_used = data['memory_used']
-    cpu_model = data['cpu_model']
-    cpu_cores = data['cpu_cores']
-    video_driver_model = data['video_driver_model']
-    disks = data['disks']
-    charge = data['charge']
-    time_left = data['time_left']
-    boot_time = data['boot_time']
-    request_time = data['request_time']
-    formated_disks = ''
-    for el in disks:
-        formated_disks += el['name'] + '\ttotal: ' + el['total'] + '\tused: ' + el['used'] + '\tfree:' + el['free'] + '\n'
-    insert_resources(device_id,
-                     cpu_used,
-                     memory_used,
-                     cpu_model,
-                     cpu_cores,
-                     video_driver_model,
-                     formated_disks,
-                     charge,
-                     time_left,
-                     boot_time,
-                     request_time)
+    for el in data['disks']:
+        disks += el['name'] + '\ttotal: ' + el['total'] + '\tused: ' + el['used'] + '\tfree:' + el['free'] + '\n'
+    insert_resources(data['device_id'],
+                     data['system'],
+                     data['video_driver_model'],
+                     data['cpu_model'],
+                     data['cpu_used'],
+                     data['physical_cores'],
+                     data['total_cores'],
+                     data['cores_used'],
+                     data['total_ram'],
+                     data['used_free_ram'],
+                     disks,
+                     data['charge'],
+                     data['time_left'],
+                     data['boot_time'],
+                     data['request_time']
+                     )

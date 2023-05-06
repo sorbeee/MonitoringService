@@ -1,7 +1,7 @@
 from socket import *
 import json
 import time
-from utils import getInfo
+from utils import get_info
 
 
 class Client:
@@ -33,10 +33,10 @@ class Client:
         timeout = 15
 
         while is_work:
-            info = json.dumps(getInfo())
+            info = json.dumps(get_info())
             if info:
                 self.sender(info)
             time.sleep(timeout)
 
 
-Client('192.168.0.103', 7000).connect()
+Client('192.168.0.104', 7000).connect()
