@@ -1,3 +1,4 @@
+import asyncio
 import threading
 import time
 from datetime import datetime
@@ -8,17 +9,15 @@ from aiogram.dispatcher import Dispatcher, FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils import executor
-from config import bot_token
 from db_scripts import *
+from config_utils import *
 
+config = read_json(config_path)["TELEGRAM_BOT"]
 
 storage = MemoryStorage()
-bot = Bot(token=bot_token)
+bot = Bot(token=config["BOT_TOKEN"])
 dp = Dispatcher(bot, storage=storage)
 
-global send_notifications
-send_notifications = False
-global user_id
 
 kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
                             KeyboardButton('Devices'),
@@ -34,8 +33,6 @@ kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
 async def command_start(message: types.Message):
     await message.answer(
         "Hi, I am Systems Monitoring Bot. I can help you with monitoring devices in your local network", reply_markup=kb)
-    user_id = message.from_user.id
-
 
 async def get_all_devices(message: types.Message):
     devices = ''
@@ -58,26 +55,20 @@ async def get_all_activity(message: types.Message):
                     f"{'⏳: ' + str(active[3].strftime(formate)) if not active[2] else ''}\n"
 
     await message.answer(activity)
-    await message.answer(select_all_activity())
-
-
-async def send_notification():
-    previous_activity = select_all_activity()
-    time.sleep(25)
-    current_activity = select_all_activity()
-    for prev, curr in zip(previous_activity, current_activity):
-        if prev[4] and prev[2] and not curr[2]:
-            await bot.send_message(user_id, f'❗❗❗\t🔌:{prev[0]}\t\t🌐:{prev[1]}\t\tis offline')
-
 
 async def start_notifications(message: types.Message):
+    tmp = read_json(config_path)
+    tmp["TELEGRAM_BOT"]["NOTIFICATIONS"] = True
+    write_json(config_path, tmp)
+
     await message.answer("🔔Notifications ON🔔")
-    send_notifications = True
 
 
 async def stop_notifications(message: types.Message):
+    tmp = read_json(config_path)
+    tmp["TELEGRAM_BOT"]["NOTIFICATIONS"] = False
+    write_json(config_path, tmp)
     await message.answer("🔕Notifications OFF🔕")
-    send_notifications = False
 
 
 async def get_resources(message: types.Message):
@@ -164,5 +155,8 @@ dp.register_message_handler(load_name, state=FSMDevice.name)
 dp.register_message_handler(load_ip, state=FSMDevice.ip)
 dp.register_message_handler(load_notifications, state=FSMDevice.notifications)
 
-start_db()
-executor.start_polling(dp, skip_updates=True)
+#executor.start_polling(dp, skip_updates=True)
+
+if __name__ == "__main__":
+    start_db()
+    executor.start_polling(dp, skip_updates=True)

@@ -32,8 +32,8 @@
 #   request_time TIMESTAMP
 # );
 
-from config import *
 import psycopg2
+from config_utils import read_json, config_path
 
 DEVICE_TABLE_NAME = 'Device'
 ID = 'id'
@@ -66,17 +66,18 @@ REQUEST_TIME = 'request_time'
 
 def start_db():
     try:
+        config = read_json(config_path)["DATABASE"]
         global connection
         connection = psycopg2.connect(
-            host=host,
-            user=user,
-            password=password,
-            database=db_name
+            host=config["HOSTNAME"],
+            user=config["USERNAME"],
+            password=config["PASSWORD"],
+            database=config["DATABASE_NAME"]
         )
         print('[INFO] Connected to db')
         return connection
     except Exception as _ex:
-        print("[INFO] error database", _ex)
+        print("[INFO] error database", _ex.__cause__)
 
 
 def select_all_devices():
