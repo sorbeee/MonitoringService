@@ -12,6 +12,8 @@ from aiogram.utils import executor
 from db_scripts import *
 from config_utils import *
 
+formate = "%d/%m/%Y %H:%M"
+
 config = read_json(config_path)["TELEGRAM_BOT"]
 
 storage = MemoryStorage()
@@ -22,32 +24,44 @@ dp = Dispatcher(bot, storage=storage)
 kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
                             KeyboardButton('Devices'),
                             KeyboardButton('Activity'),
-                            KeyboardButton('Resources'),
+                            KeyboardButton('Add device'),
                             KeyboardButton('Start notification'),
                             KeyboardButton('Stop notification'),
-                            KeyboardButton('Add device'),
                             )
 
 
 @dp.message_handler(commands=['start'])
 async def command_start(message: types.Message):
     await message.answer(
-        "Hi, I am Systems Monitoring Bot. I can help you with monitoring devices in your local network", reply_markup=kb)
+        "Hi, I am Systems Monitoring Bot. I can help you with monitoring devices in your local network",
+        reply_markup=kb
+    )
+
 
 async def get_all_devices(message: types.Message):
     devices = ''
     for device in select_all_devices():
-        devices += f"🔌: {device[1]}\t🌐: {device[2]}\t"
-        if device[3]:
-            devices += "🔔\n"
-        else:
-            devices += "🔕\n"
-    await message.answer(devices)
+        devices += f"Status: {'🟢' if select_activity(device[0])[0][1] else '🔴'} \
+                    Notifications: {'🔔' if device[3] else '🔕'} "
+
+        devices += "\n\n" if select_activity(device[0])[0][1] else \
+            f"\n\nLast seen:   {str(select_activity(device[0])[0][3].strftime(formate))}\n\n\n"
+        devices += f"🔌: {device[1]}    🌐: {device[2]} \n"
+
+        information = select_all_resources(device[0])
+        devices += '' if not information else \
+            f"\n==============💻SYSTEM INFORMATION💻==============\n" \
+            f"System: {information[0][2]}\n" \
+            f"CPU model: {information[0][4]}\n" \
+            f"Video driver: {information[0][3]}\n" \
+            f"Boot time: {information[0][14]}\n" \
+            "==================================================="
+        await message.answer(devices)
+        devices = ''
 
 
 async def get_all_activity(message: types.Message):
     activity = ''
-    formate = "%Y-%m-%d %H:%M:%S"
     for active in select_all_activity():
         activity += f"{'🟢' if active[2] else '🔴'}  " \
                     f"🔌: {active[0]}\t\t" \
@@ -78,16 +92,11 @@ async def get_resources(message: types.Message):
         if not information:
             continue
         msg += f"🔌: {information[0][0]}\t\t🌐: {information[0][1]}\n" \
-               f"\n==============💻SYSTEM INFORMATION💻==============\n" \
-               f"System: {information[0][2]}\n" \
-               f"Video driver: {information[0][3]}\n" \
-               f"CPU model: {information[0][4]}\n" \
-               f"Boot time: {information[0][14]}\n" \
                f"\n==============⚡️CPU INFORMATION⚡️==============\n" \
                f"CPU used: {information[0][5]}%\n" \
                f"Physical cores: {information[0][6]}\n" \
                f"Total cores: {information[0][7]}\n" \
-               f"Cores used:\n{information[0][8]}\n" \
+               f"Cores used:\n{information[0][8]}" \
                f"\n==============💽RAM INFORMATION💽==============\n" \
                f"Total RAM: {information[0][9]}\n" \
                f"{information[0][10]}\n" \
@@ -155,7 +164,6 @@ dp.register_message_handler(load_name, state=FSMDevice.name)
 dp.register_message_handler(load_ip, state=FSMDevice.ip)
 dp.register_message_handler(load_notifications, state=FSMDevice.notifications)
 
-#executor.start_polling(dp, skip_updates=True)
 
 if __name__ == "__main__":
     start_db()
