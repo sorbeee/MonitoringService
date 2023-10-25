@@ -6,8 +6,9 @@ from threading import Thread
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher, FSMContext
+from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils import executor
 from db_scripts import *
 from config_utils import *
@@ -41,6 +42,16 @@ async def command_start(message: types.Message):
 async def get_all_devices(message: types.Message):
     devices = ''
     for device in select_all_devices():
+        inkb = InlineKeyboardMarkup(row_width=3).add(
+            InlineKeyboardButton(text=f'Resources', callback_data=f'resources_{device[0]}'),
+            InlineKeyboardButton(text=f'Plots', callback_data=f'delete_{device[0]}'),
+            InlineKeyboardButton(text=f'Delete', callback_data=f'delete_{device[0]}'),
+        )
+        inkb.add(InlineKeyboardButton(text=f"{'Stop' if device[3] else 'Start' } notifications",
+                                 callback_data=f"notifications_{'start' if device[3] else 'stop' }_{device[0]}"))
+        inkb.add(InlineKeyboardButton(text=f'Shutdown', callback_data=f'delete_{device[0]}'))
+        inkb.insert(InlineKeyboardButton(text=f'Restart', callback_data=f'delete_{device[0]}'))
+
         devices += f"Status: {'🟢' if select_activity(device[0])[0][1] else '🔴'} \
                     Notifications: {'🔔' if device[3] else '🔕'} "
 
@@ -56,7 +67,7 @@ async def get_all_devices(message: types.Message):
             f"Video driver: {information[0][3]}\n" \
             f"Boot time: {information[0][14]}\n" \
             "==================================================="
-        await message.answer(devices)
+        await message.answer(devices, reply_markup=inkb)
         devices = ''
 
 
@@ -69,6 +80,7 @@ async def get_all_activity(message: types.Message):
                     f"{'⏳: ' + str(active[3].strftime(formate)) if not active[2] else ''}\n"
 
     await message.answer(activity)
+
 
 async def start_notifications(message: types.Message):
     tmp = read_json(config_path)
@@ -85,12 +97,21 @@ async def stop_notifications(message: types.Message):
     await message.answer("🔕Notifications OFF🔕")
 
 
-async def get_resources(message: types.Message):
+async def update_device_notifications(callback : types.CallbackQuery):
+    onOrOff = True if callback.data.split('_')[1] == 'start' else False
+    id = callback.data.split('_')[2]
+    await callback.answer(f"Notifications {'enabled' if onOrOff else 'disabled'}"
+                          if update_device(id, onOrOff) else 'Something went wrong', show_alert=True)
+    await callback.answer()
+
+
+async def get_resources(callback : types.CallbackQuery):
     msg = ''
-    for id in select_ids():
-        information = select_all_resources(id[0])
-        if not information:
-            continue
+    information = select_all_resources(int(callback.data.split('_')[1]))
+    if not information:
+        await callback.answer("No information about this device")
+        await callback.answer()
+    else:
         msg += f"🔌: {information[0][0]}\t\t🌐: {information[0][1]}\n" \
                f"\n==============⚡️CPU INFORMATION⚡️==============\n" \
                f"CPU used: {information[0][5]}%\n" \
@@ -105,7 +126,8 @@ async def get_resources(message: types.Message):
                f"\n==============🔋BATTERY INFORMATION🔋==============\n" \
                f"Charge: {information[0][12]}%\n" \
                f"Time left: {information[0][13]}"
-        await message.answer(msg)
+        await callback.message.reply(msg)
+        await callback.answer()
 
 
 class FSMDevice(StatesGroup):
@@ -153,18 +175,21 @@ async def load_notifications(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-dp.register_message_handler(get_all_devices, lambda message: 'Devices' in message.text)
-dp.register_message_handler(get_all_activity, lambda message: 'Activity' in message.text)
-dp.register_message_handler(start_notifications, lambda message: 'Start notification' in message.text)
-dp.register_message_handler(stop_notifications, lambda message: 'Stop notification' in message.text)
-dp.register_message_handler(get_resources, lambda message: 'Resources' in message.text)
-dp.register_message_handler(cancel_handler, state="*", commands='cancel')
-dp.register_message_handler(cm_start, lambda message: 'Add device' in message.text, state=None)
-dp.register_message_handler(load_name, state=FSMDevice.name)
-dp.register_message_handler(load_ip, state=FSMDevice.ip)
-dp.register_message_handler(load_notifications, state=FSMDevice.notifications)
+def reg_handlers_client(dp : Dispatcher):
+    dp.register_callback_query_handler(update_device_notifications), lambda x: x.data and x.data.startswith('notifications_')
+    dp.register_callback_query_handler(get_resources), lambda x: x.data and x.data.startswith('resources_')
+    dp.register_message_handler(get_all_devices, lambda message: 'Devices' in message.text)
+    dp.register_message_handler(get_all_activity, lambda message: 'Activity' in message.text)
+    dp.register_message_handler(start_notifications, lambda message: 'Start notification' in message.text)
+    dp.register_message_handler(stop_notifications, lambda message: 'Stop notification' in message.text)
+    dp.register_message_handler(cancel_handler, state="*", commands='cancel')
+    dp.register_message_handler(cm_start, lambda message: 'Add device' in message.text, state=None)
+    dp.register_message_handler(load_name, state=FSMDevice.name)
+    dp.register_message_handler(load_ip, state=FSMDevice.ip)
+    dp.register_message_handler(load_notifications, state=FSMDevice.notifications)
 
 
 if __name__ == "__main__":
     start_db()
+    reg_handlers_client(dp)
     executor.start_polling(dp, skip_updates=True)

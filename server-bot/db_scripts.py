@@ -107,6 +107,22 @@ def insert_device(name, ip, notification):
         print(str(ex))
 
 
+def update_device(id, notification):
+    try:
+        with connection.cursor() as cursor:
+            insert_query = 'UPDATE ' + DEVICE_TABLE_NAME + \
+                           ' SET ' + DEVICE_NOTIFICATION + ' = ' + str(notification) +\
+                           ' WHERE ' + ID + ' = ' + str(id) + ';'
+
+            cursor.execute(insert_query)
+            connection.commit()
+            print("[INFO] Data was updated")
+            return True
+    except Exception as ex:
+        print(str(ex))
+        return False
+
+
 def insert_activity(id, is_online, last_ping, last_time_online):
     try:
         with connection.cursor() as cursor:
