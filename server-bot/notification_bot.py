@@ -44,7 +44,7 @@ async def get_all_devices(message: types.Message):
     for device in select_all_devices():
         inkb = InlineKeyboardMarkup(row_width=3).add(
             InlineKeyboardButton(text=f'Resources', callback_data=f'resources_{device[0]}'),
-            InlineKeyboardButton(text=f'Plots', callback_data=f'delete_{device[0]}'),
+            InlineKeyboardButton(text=f'Plots', callback_data=f'plots_{device[0]}'),
             InlineKeyboardButton(text=f'Delete', callback_data=f'delete_{device[0]}'),
         )
         inkb.add(InlineKeyboardButton(text=f"{'Stop' if device[3] else 'Start' } notifications",
@@ -95,6 +95,11 @@ async def stop_notifications(message: types.Message):
     tmp["TELEGRAM_BOT"]["NOTIFICATIONS"] = False
     write_json(config_path, tmp)
     await message.answer("🔕Notifications OFF🔕")
+
+
+async def delete_device(callback : types.CallbackQuery):
+    await callback.answer("Device was removed" if remove_device(callback.data.split('_')[1]) else "Something went wrong", show_alert=True)
+    await callback.answer()
 
 
 async def update_device_notifications(callback : types.CallbackQuery):
@@ -178,6 +183,7 @@ async def load_notifications(message: types.Message, state: FSMContext):
 def reg_handlers_client(dp : Dispatcher):
     dp.register_callback_query_handler(update_device_notifications), lambda x: x.data and x.data.startswith('notifications_')
     dp.register_callback_query_handler(get_resources), lambda x: x.data and x.data.startswith('resources_')
+    dp.register_callback_query_handler(delete_device), lambda x: x.data and x.data.startswith('delete_')
     dp.register_message_handler(get_all_devices, lambda message: 'Devices' in message.text)
     dp.register_message_handler(get_all_activity, lambda message: 'Activity' in message.text)
     dp.register_message_handler(start_notifications, lambda message: 'Start notification' in message.text)

@@ -8,14 +8,14 @@
 # );
 #
 # CREATE TABLE DeviceActivity (
-#     device_id INTEGER REFERENCES Device(id),
+#     device_id INTEGER REFERENCES Device(id) ON DELETE CASCADE,
 #     is_online BOOLEAN,
 #     last_ping TIMESTAMP,
 #     last_time_online TIMESTAMP
 # );
 #
 # CREATE TABLE DeviceResources (
-#   device_id INTEGER REFERENCES Device(id),
+#   device_id INTEGER REFERENCES Device(id) ON DELETE CASCADE,
 # 	system VARCHAR(255),
 # 	video_driver_model VARCHAR(255),
 #   cpu_model VARCHAR(255),
@@ -115,6 +115,20 @@ def update_device(id, notification):
                            ' WHERE ' + ID + ' = ' + str(id) + ';'
 
             cursor.execute(insert_query)
+            connection.commit()
+            print("[INFO] Data was updated")
+            return True
+    except Exception as ex:
+        print(str(ex))
+        return False
+
+def remove_device(id):
+    try:
+        with connection.cursor() as cursor:
+            delete_query = \
+                'DELETE FROM ' + DEVICE_TABLE_NAME + ' WHERE ' + ID + ' = ' + str(id) + ';'
+
+            cursor.execute(delete_query)
             connection.commit()
             print("[INFO] Data was updated")
             return True

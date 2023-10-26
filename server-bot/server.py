@@ -17,7 +17,6 @@ class Server:
         )
         self.ser.listen(3)
 
-
     def sender(self, user, text):
         user.send(text.encode('utf-8'))
 
