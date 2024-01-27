@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils import executor
 #from server.db_scripts import *
-from server.config_utils import *
+from src.server.config_utils import *
 
 formate = "%d/%m/%Y %H:%M"
 

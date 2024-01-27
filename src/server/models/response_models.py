@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class Device(BaseModel):
-    id: int
+    id: int = None
     name: str
     ip: str
     notification: bool
@@ -16,6 +16,13 @@ class Activity(BaseModel):
     is_online: bool
     last_time_online: datetime.datetime
     notification: bool
+
+
+class DeviceActivity(BaseModel):
+    device_id: int
+    is_online: bool
+    last_ping: datetime.datetime
+    last_time_online: datetime.datetime
 
 
 class Resources(BaseModel):
@@ -36,14 +43,16 @@ class Resources(BaseModel):
     request_time: datetime.datetime
 
 
+class DeviceResources(Resources):
+    device_name: str
+    device_ip: str
+
+
 class Action(BaseModel):
     id: int
     name: str
     execution_string: str
 
 
-class DeviceActivity(BaseModel):
-    device_id: int
-    is_online: bool
-    last_ping: datetime.datetime
-    last_time_online: datetime.datetime
+class ResponseModel(BaseModel):
+    status: int

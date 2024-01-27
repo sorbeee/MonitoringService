@@ -14,6 +14,7 @@ CREATE TABLE DeviceActivity (
     last_time_online TIMESTAMP
 );
 
+
 CREATE TABLE DeviceResources (
     device_id INTEGER REFERENCES Device(id) ON DELETE CASCADE,
     system VARCHAR(255),
@@ -30,4 +31,19 @@ CREATE TABLE DeviceResources (
     time_left VARCHAR(255),
     boot_time TIMESTAMP,
     request_time TIMESTAMP
+);
+
+
+CREATE TABLE Action(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    execution_string_Windows VARCHAR(255),
+    execution_string_Linux VARCHAR(255),
+    execution_string_Darwin VARCHAR(255)
+);
+
+
+CREATE TABLE ActionList(
+    device_id INTEGER REFERENCES Device(id) ON DELETE CASCADE,
+    action_id INTEGER REFERENCES Action(id) ON DELETE CASCADE
 );

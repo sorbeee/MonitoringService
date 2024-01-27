@@ -1,3 +1,8 @@
+- Add new endpoints on server side (DONE)
+- Add action support on DB side (DONE)
+- Add action support on server side (DONE)
 - Write script for DB init
 - Refactor telegram bot
-- Add new endpoints on server side
+- Create proper .gitignore file
+- Add script to launch server/client
+- Add multi-platform support

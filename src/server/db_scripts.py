@@ -1,5 +1,5 @@
 import psycopg2
-from server.config_utils import read_json, config_path
+from config_utils import read_json, config_path
 
 DEVICE_TABLE_NAME = 'Device'
 ID = 'id'
@@ -29,6 +29,12 @@ TIME_LEFT = 'time_left'
 BOOT_TIME = 'boot_time'
 REQUEST_TIME = 'request_time'
 
+ACTIONS_TABLE_NAME = 'Action'
+ACTION_NAME = 'name'
+
+ACTION_LIST_TABLE_NAME = 'ActionList'
+ACTION_ID = 'action_id'
+EXECUTION_STRING = 'execution_string_'
 
 def start_db():
     try:
@@ -69,8 +75,10 @@ def insert_device(name, ip, notification):
             cursor.execute(insert_query % (name, ip, notification))
             connection.commit()
             print("[INFO] Data was added")
+            return True
     except Exception as ex:
         print(str(ex))
+        return False
 
 
 def update_device(id, notification):
@@ -116,8 +124,10 @@ def insert_activity(id, is_online, last_ping, last_time_online):
             cursor.execute(insert_query % (id, is_online, last_ping, last_time_online))
         connection.commit()
         print("[INFO] Data was added")
+        return True
     except Exception as ex:
         print(str(ex))
+        return False
 
 
 def select_ips():
@@ -280,3 +290,60 @@ def select_ids():
             return cursor.fetchall()
     except Exception as ex:
         print(str(ex))
+
+
+def select_all_actions():
+    try:
+        select_query = 'SELECT * FROM ' + ACTIONS_TABLE_NAME + ';'
+        with connection.cursor() as cursor:
+            cursor.execute(select_query)
+            return cursor.fetchall()
+    except Exception as ex:
+        print(str(ex))
+        return False
+
+
+def select_action(id, system):
+    try:
+        select_query = 'SELECT ' + EXECUTION_STRING + system + \
+                        ' FROM ' + ACTION_LIST_TABLE_NAME + ' JOIN ' + ACTIONS_TABLE_NAME + \
+                        ' ON ' + ID + ' = ' + ACTION_ID + \
+                        ' WHERE ' + DEVICE_ID + ' = ' + str(id) + ';'
+        with connection.cursor() as cursor:
+            cursor.execute(select_query)
+            return cursor.fetchall()
+    except Exception as ex:
+        print(str(ex))
+        return False
+
+
+def update_action(id, activity_id):
+    try:
+        with connection.cursor() as cursor:
+            insert_query = 'UPDATE ' + ACTION_LIST_TABLE_NAME + \
+                           ' SET ' + ACTION_ID + ' = ' + str(activity_id) +\
+                           ' WHERE ' + DEVICE_ID + ' = ' + str(id) + ';'
+
+            cursor.execute(insert_query)
+            connection.commit()
+            print("[INFO] Data was updated")
+            return True
+    except Exception as ex:
+        print(str(ex))
+        return False
+
+
+def remove_action(action_id):
+    try:
+        with (connection.cursor() as cursor):
+            delete_query = \
+                'DELETE FROM ' + ACTION_LIST_TABLE_NAME + \
+                ' WHERE ' + ACTION_ID + ' = ' + str(action_id) + ';'
+
+            cursor.execute(delete_query)
+            connection.commit()
+            print("[INFO] Data was deleted")
+            return True
+    except Exception as ex:
+        print(str(ex))
+        return False

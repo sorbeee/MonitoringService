@@ -2,7 +2,7 @@ import datetime
 import time
 import requests
 import os
-from SQLScripts.db_scripts import *
+from db_scripts import *
 
 
 def ping(ip_address, count=5, timeout=5):
@@ -93,6 +93,32 @@ def convert_activity_data(input_data):
             "is_online": item[2],
             "last_time_online": item[3],
             "notification": item[4]
+        }
+        output_data.append(converted_item)
+    return output_data
+
+
+def convert_resource_data(input_data, id):
+    output_data = []
+    for item in input_data:
+        converted_item = {
+            "device_id": id,
+            "device_name": item[0],
+            "device_ip": item[1],
+            "system": item[2],
+            "video_driver_model": item[3],
+            "cpu_model": item[4],
+            "cpu_used": item[5],
+            "physical_cores": item[6],
+            "total_cores": item[7],
+            "cores_used": item[8],
+            "total_ram": item[9],
+            "used_free_ram": item[10],
+            "disks": item[11],
+            "charge": item[12],
+            "time_left": item[13],
+            "boot_time": item[14],
+            "request_time": item[15]
         }
         output_data.append(converted_item)
     return output_data
