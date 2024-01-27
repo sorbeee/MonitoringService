@@ -1,39 +1,5 @@
-# CREATE DATABASE MonitoringService;
-#
-# CREATE TABLE Device (
-#     id SERIAL PRIMARY KEY,
-#     name VARCHAR(255),
-#     ip VARCHAR(255),
-#     can_get_info BOOLEAN
-# );
-#
-# CREATE TABLE DeviceActivity (
-#     device_id INTEGER REFERENCES Device(id) ON DELETE CASCADE,
-#     is_online BOOLEAN,
-#     last_ping TIMESTAMP,
-#     last_time_online TIMESTAMP
-# );
-#
-# CREATE TABLE DeviceResources (
-#   device_id INTEGER REFERENCES Device(id) ON DELETE CASCADE,
-# 	system VARCHAR(255),
-# 	video_driver_model VARCHAR(255),
-#   cpu_model VARCHAR(255),
-#   cpu_used VARCHAR(255),
-# 	physical_cores INTEGER,
-#   total_cores INTEGER,
-# 	cores_used VARCHAR(1024),
-#   total_ram VARCHAR(255),
-# 	used_free_ram VARCHAR(255),
-#   disks VARCHAR(1024),
-#   charge VARCHAR(255),
-#   time_left VARCHAR(255),
-#   boot_time TIMESTAMP,
-#   request_time TIMESTAMP
-# );
-
 import psycopg2
-from config_utils import read_json, config_path
+from server.config_utils import read_json, config_path
 
 DEVICE_TABLE_NAME = 'Device'
 ID = 'id'
@@ -122,6 +88,7 @@ def update_device(id, notification):
         print(str(ex))
         return False
 
+
 def remove_device(id):
     try:
         with connection.cursor() as cursor:
@@ -130,7 +97,7 @@ def remove_device(id):
 
             cursor.execute(delete_query)
             connection.commit()
-            print("[INFO] Data was updated")
+            print("[INFO] Data was deleted")
             return True
     except Exception as ex:
         print(str(ex))
@@ -244,8 +211,10 @@ def insert_resources(id,
                                            request_time))
             connection.commit()
         print("[INFO] Data was added")
+        return True
     except Exception as ex:
         print(str(ex))
+        return str(ex)
 
 
 def select_all_activity():

@@ -1,17 +1,11 @@
-import asyncio
-import threading
-import time
-from datetime import datetime
-from threading import Thread
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher, FSMContext
-from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils import executor
-from db_scripts import *
-from config_utils import *
+#from server.db_scripts import *
+from server.config_utils import *
 
 formate = "%d/%m/%Y %H:%M"
 

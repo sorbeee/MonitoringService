@@ -37,7 +37,7 @@ class Server:
         start_db()
         self.ping_thread = threading.Thread(target=self.start_ping)
         self.listen_thread = threading.Thread(target=self.start_server)
-        self.send_noti = threading.Thread(target=self.send_notification)
+        self.send_noti = threading.Thread(target=send_notification)
 
 
         self.ping_thread.start()
@@ -59,27 +59,12 @@ class Server:
             if len(data) > 0:
                 msg = data.decode('utf-8')
                 store_info(msg)
+
+
+
             else:
                 print('CLIENT DISCONNECTED')
                 is_work = False
-
-    def send_notification(self):
-        while True:
-            config = read_json(config_path)["TELEGRAM_BOT"]
-            if config["NOTIFICATIONS"]:
-                BOT_TOKEN = config["BOT_TOKEN"]
-                CHAT_ID = config["CHAT_ID"]
-                previous_activity = select_all_activity()
-                time.sleep(35)
-                current_activity = select_all_activity()
-                for prev, curr in zip(previous_activity, current_activity):
-                    if prev[4] and prev[2] and not curr[2]:
-                        message = f'???\tName:{prev[0]}\t\tIP:{prev[1]}\t\tis offline'
-                        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={message}"
-                        requests.get(url).json()
-            else:
-                time.sleep(10)
-                continue
 
 
 Server('192.168.0.104', 7000).start()

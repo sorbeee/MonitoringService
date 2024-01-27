@@ -4,6 +4,7 @@ import psutil
 import wmi
 from datetime import datetime
 
+
 def secs2hours(secs):
      mm, ss = divmod(secs, 60)
      hh, mm = divmod(mm, 60)

@@ -1,0 +1,3 @@
+- Write script for DB init
+- Refactor telegram bot
+- Add new endpoints on server side
