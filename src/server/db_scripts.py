@@ -1,3 +1,5 @@
+import json
+
 import psycopg2
 from config_utils import read_json, config_path
 
@@ -214,7 +216,7 @@ def insert_resources(id,
                                            cores_used,
                                            total_ram,
                                            used_free_ram,
-                                           disks,
+                                           json.dumps(disks),
                                            charge,
                                            time_left,
                                            boot_time,
@@ -333,12 +335,12 @@ def update_action(id, activity_id):
         return False
 
 
-def remove_action(action_id):
+def remove_action(device_id):
     try:
         with (connection.cursor() as cursor):
             delete_query = \
                 'DELETE FROM ' + ACTION_LIST_TABLE_NAME + \
-                ' WHERE ' + ACTION_ID + ' = ' + str(action_id) + ';'
+                ' WHERE ' + DEVICE_ID + ' = ' + str(device_id) + ';'
 
             cursor.execute(delete_query)
             connection.commit()
@@ -347,3 +349,5 @@ def remove_action(action_id):
     except Exception as ex:
         print(str(ex))
         return False
+
+# TODO: Write query for returning device id

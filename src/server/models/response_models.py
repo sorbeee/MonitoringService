@@ -26,18 +26,18 @@ class DeviceActivity(BaseModel):
 
 
 class Resources(BaseModel):
-    device_id: int
+    device_id: int = None
     system: str
     video_driver_model: str
     cpu_model: str
-    cpu_used: str
+    cpu_used: float
     physical_cores: int
     total_cores: int
     cores_used: str
     total_ram: str
     used_free_ram: str
-    disks: str
-    charge: str
+    disks: list
+    charge: int
     time_left: str
     boot_time: datetime.datetime
     request_time: datetime.datetime
@@ -48,11 +48,9 @@ class DeviceResources(Resources):
     device_ip: str
 
 
-class Action(BaseModel):
-    id: int
-    name: str
-    execution_string: str
-
-
 class ResponseModel(BaseModel):
     status: int
+
+
+class Action(BaseModel):
+    execution_string: str = None
