@@ -1,4 +1,5 @@
 import datetime
+import subprocess
 import time
 import requests
 import os
@@ -6,8 +7,9 @@ from db_scripts import *
 
 
 def ping(ip_address, count=5, timeout=5):
-    response = os.system("ping -n %d -w %d %s" % (count, timeout, ip_address))
-    return response == 0
+    command = f"ping -n {count} -w {timeout} {ip_address}"
+    result = subprocess.run(command, shell=True, capture_output=True)
+    return result.returncode == 0
 
 
 def execute_ping():

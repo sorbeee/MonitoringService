@@ -111,8 +111,8 @@ def get_all_available_actions():
 @app.on_event("startup")
 async def startup_event():
     start_db()
-    # ping_thread = threading.Thread(target=lambda: start_ping(15))   # TODO: Redirect output to file or mute it
-    # notification_thread = threading.Thread(target=send_notification)
-    #
-    # ping_thread.start()
-    # notification_thread.start()
+    ping_thread = threading.Thread(target=lambda: start_ping(15))
+    notification_thread = threading.Thread(target=send_notification)
+
+    ping_thread.start()
+    notification_thread.start()
