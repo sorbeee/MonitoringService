@@ -98,6 +98,17 @@ def convert_activity_data(input_data):
     return output_data
 
 
+def convert_action_data(input_data):
+    output_data = []
+    for item in input_data:
+        converted_item = {
+            "action_id": item[0],
+            "action_name": item[1]
+        }
+        output_data.append(converted_item)
+    return output_data
+
+
 def convert_resource_data(input_data, id):
     output_data = []
     for item in input_data:
@@ -114,7 +125,7 @@ def convert_resource_data(input_data, id):
             "cores_used": item[8],
             "total_ram": item[9],
             "used_free_ram": item[10],
-            "disks": item[11],
+            "disks": json.loads(item[11]),
             "charge": item[12],
             "time_left": item[13],
             "boot_time": item[14],

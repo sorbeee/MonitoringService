@@ -1,12 +1,8 @@
 import threading
-import time
-
-import requests
 
 from socket import *
 from utils import *
 
-from config_utils import *
 
 class Server:
     def __init__(self, ip, port):

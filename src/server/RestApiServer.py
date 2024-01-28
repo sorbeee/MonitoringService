@@ -9,8 +9,8 @@ app = FastAPI()
 
 
 @app.get("/resources/{device_id}", response_model=List[DeviceResources])
-def get_all_resources(device_id: int):
-    return convert_resource_data(select_all_resources(device_id), device_id)
+def get_all_resources(device_id: int, limit: int):
+    return convert_resource_data(select_all_resources(device_id, limit), device_id)
 
 
 @app.get("/device", response_model=List[Device])
@@ -35,7 +35,7 @@ def get_activity_by_id(device_id: int):
     return response
 
 
-@app.get("/actions/{device_id}", response_model=Action)
+@app.get("/action/{device_id}", response_model=Action)
 def get_action(device_id: int, system: str):
     action = select_action(device_id, system)
     response = {}
@@ -68,11 +68,18 @@ def add_resources(resources: Resources):
         raise HTTPException(status_code=400, detail="Invalid device ID")
 
 
+@app.post("/action")
+def insert_device_actions(action: ActionList):
+    if not insert_action(action.device_id, action.action_id):
+        raise HTTPException(status_code=400, detail="An error occurred on the database side")
+    return 200
+
+
 @app.put("/device/{device_id}")
 def update_device_fields(device_id: int, notifications: bool):
     if not update_device(device_id, notifications):
         raise HTTPException(status_code=400, detail="An error occurred on the database side")
-    return 200
+    return {"status": 204}
 
 
 @app.put("/activity/{device_id}", response_model=ResponseModel)
@@ -96,11 +103,16 @@ def delete_action(action_id: int):
     return {"status": 204}
 
 
+@app.get("/action", response_model=List[AvailableAction])
+def get_all_available_actions():
+    return convert_action_data(select_all_actions())
+
+
 @app.on_event("startup")
 async def startup_event():
     start_db()
-    ping_thread = threading.Thread(target=lambda: start_ping(15))   # TODO: Redirect output to file or mute it
-    notification_thread = threading.Thread(target=send_notification)
-
-    ping_thread.start()
-    notification_thread.start()
+    # ping_thread = threading.Thread(target=lambda: start_ping(15))   # TODO: Redirect output to file or mute it
+    # notification_thread = threading.Thread(target=send_notification)
+    #
+    # ping_thread.start()
+    # notification_thread.start()

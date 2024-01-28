@@ -54,3 +54,13 @@ class ResponseModel(BaseModel):
 
 class Action(BaseModel):
     execution_string: str = None
+
+
+class ActionList(BaseModel):
+    device_id: int
+    action_id: int
+
+
+class AvailableAction(BaseModel):
+    action_id: int
+    action_name: str

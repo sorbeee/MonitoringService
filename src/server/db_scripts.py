@@ -86,11 +86,11 @@ def insert_device(name, ip, notification):
 def update_device(id, notification):
     try:
         with connection.cursor() as cursor:
-            insert_query = 'UPDATE ' + DEVICE_TABLE_NAME + \
+            update_query = 'UPDATE ' + DEVICE_TABLE_NAME + \
                            ' SET ' + DEVICE_NOTIFICATION + ' = ' + str(notification) +\
                            ' WHERE ' + ID + ' = ' + str(id) + ';'
 
-            cursor.execute(insert_query)
+            cursor.execute(update_query)
             connection.commit()
             print("[INFO] Data was updated")
             return True
@@ -250,7 +250,7 @@ def select_all_activity():
         print(str(ex))
 
 
-def select_all_resources(id):
+def select_all_resources(id, limit):
     try:
         select_query = 'SELECT ' + \
                        DEVICE_NAME + ', ' + \
@@ -276,7 +276,8 @@ def select_all_resources(id):
                        ' ON ' + \
                        ID + ' = ' + DEVICE_ID + \
                        ' WHERE  ' + DEVICE_ID + ' = ' + str(id) + \
-                       ' ORDER BY ' + REQUEST_TIME + ' DESC;'
+                       ' ORDER BY ' + REQUEST_TIME + ' DESC' + \
+                        ' LIMIT ' + str(limit) + ';'
         with connection.cursor() as cursor:
             cursor.execute(select_query)
             return cursor.fetchall()
@@ -322,11 +323,11 @@ def select_action(id, system):
 def update_action(id, activity_id):
     try:
         with connection.cursor() as cursor:
-            insert_query = 'UPDATE ' + ACTION_LIST_TABLE_NAME + \
+            update_query = 'UPDATE ' + ACTION_LIST_TABLE_NAME + \
                            ' SET ' + ACTION_ID + ' = ' + str(activity_id) +\
                            ' WHERE ' + DEVICE_ID + ' = ' + str(id) + ';'
 
-            cursor.execute(insert_query)
+            cursor.execute(update_query)
             connection.commit()
             print("[INFO] Data was updated")
             return True
@@ -349,5 +350,24 @@ def remove_action(device_id):
     except Exception as ex:
         print(str(ex))
         return False
+
+
+def insert_action(device_id, action_id):
+    try:
+        with connection.cursor() as cursor:
+            insert_query = 'INSERT INTO ' + ACTION_LIST_TABLE_NAME + \
+                           '(' + \
+                           DEVICE_ID + ', ' + \
+                           ACTION_ID + \
+                           ') VALUES (%d, %d);'
+
+            cursor.execute(insert_query % (device_id, action_id))
+            connection.commit()
+            print("[INFO] Data was added")
+            return True
+    except Exception as ex:
+        print(str(ex))
+        return False
+
 
 # TODO: Write query for returning device id

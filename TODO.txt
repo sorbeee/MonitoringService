@@ -3,7 +3,7 @@
 - Add action support on server side (DONE)
 - Implement client (DONE)
 - Add new model for successful response
-- Refactor telegram bot
+- Refactor telegram bot (DONE)
 - Write script for DB init
 - Create proper .gitignore file
 - Add script to launch server/client

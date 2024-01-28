@@ -7,7 +7,7 @@ from time import sleep
 from utils import get_info
 
 url = "http://127.0.0.1:3000"
-device_id = 9   # TODO: Need to de initialized during first connection to the server
+device_id = 3   # TODO: Need to de initialized during first connection to the server
 timeout = 2     # TODO: Can be moved somewhere
 
 
@@ -25,7 +25,7 @@ while True:
         print(f"Something went wrong. Error code: {response.status_code}")
         break
 
-    response = requests.get(f"{url}/actions/{device_id}?system={platform.system()}")
+    response = requests.get(f"{url}/action/{device_id}?system={platform.system()}")
 
     if response.status_code != 200:
         print(f"Something went wrong. Error code: {response.status_code}")

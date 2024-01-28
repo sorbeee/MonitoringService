@@ -1,0 +1,13 @@
+{
+    "DATABASE": {
+        "HOSTNAME": "localhost",
+        "USERNAME": "postgres",
+        "PASSWORD": "postgres",
+        "DATABASE_NAME": "monitoringservice"
+    },
+    "TELEGRAM_BOT": {
+        "BOT_TOKEN": "6000913370:AAFlOrxnnbCxibuBwieGEOl_f8lNy3r6X98",
+        "CHAT_ID": "466960027",
+        "NOTIFICATIONS": true
+    }
+}
