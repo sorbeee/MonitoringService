@@ -178,7 +178,7 @@ def create_charge_stat(data):
     df = pd.DataFrame(parsed_data)
 
     df.set_index('timestamp', inplace=True)
-    df_resampled = df.resample('1T').mean()
+    df_resampled = df.resample('1min').mean()
 
     plt.plot(df_resampled.index, df_resampled['charge_level'])
     plt.xlabel('Time')
