@@ -1,8 +1,12 @@
 import threading
+import io
+
 from typing import List
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
+from starlette.responses import StreamingResponse
+
 from models.response_models import *
 from utils import *
 
@@ -57,6 +61,29 @@ async def get_action(device_id: int, system: str):
 @app.get("/action", response_model=List[AvailableAction])
 async def get_all_available_actions():
     return convert_action_data(select_all_actions())
+
+
+@app.get("/stat/{device_id}")
+async def get_stat(device_id: int, stat_type: str, interval: str):
+    data = select_stat(device_id, stat_type, interval)
+    stat_chart = None
+    if len(data) < 2:
+        raise HTTPException(status_code=418, detail="Not enough information")
+    else:
+        if stat_type == 'disks':
+            stat_chart = create_disk_stat(data)
+        elif stat_type == 'charge':
+            stat_chart = create_charge_stat(data)
+        elif stat_type == 'used_free_ram':
+            stat_chart = create_ram_stat(data)
+        elif stat_type == 'cpu_used':
+            stat_chart = create_cpu_stat(data)
+
+        buffer = io.BytesIO()
+        stat_chart.savefig(buffer, format='png')
+        buffer.seek(0)
+        plt.close()
+        return StreamingResponse(io.BytesIO(buffer.read()), media_type="image/png")
 
 
 @app.post("/device", response_model=ResponseModel)
@@ -118,8 +145,8 @@ async def delete_action(action_id: int):
 @app.on_event("startup")
 async def startup_event():
     start_db()
-    ping_thread = threading.Thread(target=lambda: start_ping(15))
-    notification_thread = threading.Thread(target=send_notification)
+    #ping_thread = threading.Thread(target=lambda: start_ping(15))
+    #notification_thread = threading.Thread(target=send_notification)
 
-    ping_thread.start()
-    notification_thread.start()
+    #ping_thread.start()
+    #notification_thread.start()

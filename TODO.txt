@@ -1,9 +1,14 @@
+- Charge architectural  from SOCKET to RestApi (DONE)
+- Implement server and base endpoints (DONE)
 - Add new endpoints on server side (DONE)
 - Add action support on DB side (DONE)
 - Add action support on server side (DONE)
 - Implement client (DONE)
 - Add new model for successful response (DONE)
 - Refactor telegram bot (DONE)
+- Implement plots on bot side
+- Implement plots on DB side (DONE)
+- Implement plots on server side (DONE)
 - Write script for DB init
 - Create proper .gitignore file
 - Add script to launch server/client

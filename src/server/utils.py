@@ -3,6 +3,11 @@ import subprocess
 import time
 import requests
 import os
+
+from matplotlib import pyplot as plt
+import numpy as np
+import pandas as pd
+
 from db_scripts import *
 
 
@@ -135,3 +140,80 @@ def convert_resource_data(input_data, id):
         }
         output_data.append(converted_item)
     return output_data
+
+
+def create_disk_stat(input):
+    json_string = input[0][0]
+    disk_info = json.loads(json_string)
+
+    names = [disk["name"] for disk in disk_info]
+    total_sizes = [float(disk["total"][:-2]) if disk["total"].endswith("GB") else float(disk["total"][:-2]) / 1024 for
+                   disk in disk_info]
+    used_sizes = [float(disk["used"][:-2]) if disk["used"].endswith("GB") else float(disk["used"][:-2]) / 1024 for disk
+                  in disk_info]
+    free_sizes = [float(disk["free"][:-2]) if disk["free"].endswith("GB") else float(disk["free"][:-2]) / 1024 for disk
+                  in disk_info]
+
+    fig, ax = plt.subplots()
+
+    bar_width = 0.2
+    index = np.arange(len(names))
+
+    bar1 = ax.bar(index - bar_width, used_sizes, width=bar_width, label='Used', color='red')
+    bar2 = ax.bar(index, free_sizes, width=bar_width, label='Free')
+    bar3 = ax.bar(index + bar_width, total_sizes, width=bar_width, label='Total', color='green')
+
+    ax.set_ylabel('Sizes (GB)')
+    ax.set_title('Disk Information')
+    ax.set_xticks(index)
+    ax.set_xticklabels(names)
+    ax.legend()
+
+    return plt
+
+
+def create_charge_stat(data):
+    parsed_data = [{'charge_level': int(charge), 'timestamp': timestamp} for charge, timestamp in data]
+
+    df = pd.DataFrame(parsed_data)
+
+    df.set_index('timestamp', inplace=True)
+    df_resampled = df.resample('1T').mean()
+
+    plt.plot(df_resampled.index, df_resampled['charge_level'])
+    plt.xlabel('Time')
+    plt.ylabel('Charge')
+    plt.title('Charge stat')
+    return plt
+
+
+def create_ram_stat(data):
+    used_data = [float(entry.split('GB')[0].split('Used: ')[1]) if 'GB' in entry else float(
+        entry.split('MB')[0].split('Used: ')[1]) / 1024 for entry, _ in data]
+    timestamps = [timestamp for _, timestamp in data]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(timestamps, used_data, label='Used Memory (GB)')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Used Memory (GB)')
+    plt.title('Used Memory Over Time')
+    plt.legend()
+
+    return plt
+
+
+def create_cpu_stat(data):
+    cpu_percentage = [float(entry[0]) for entry in data]
+    timestamps = [timestamp for _, timestamp in data]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(timestamps, cpu_percentage, label='CPU Usage (%)')
+    plt.xlabel('Timestamp')
+    plt.ylabel('CPU Usage (%)')
+    plt.title('CPU Usage Over Time')
+    plt.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
+    plt.axhline(y=100, color='gray', linestyle='--', linewidth=0.8)
+    plt.yticks(range(0, 101, 10))
+    plt.legend()
+
+    return plt

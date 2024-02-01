@@ -1,3 +1,5 @@
+import socket
+
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher, FSMContext
@@ -11,7 +13,7 @@ from utils import *
 
 config = read_json(config_path)["TELEGRAM_BOT"]
 
-url = "http://127.0.0.1:3000"
+url = "http://127.0.0.1:8000"
 
 storage = MemoryStorage()
 bot = Bot(token=config["BOT_TOKEN"])
@@ -163,6 +165,40 @@ async def get_resources(callback: types.CallbackQuery):
         await callback.answer()
 
 
+async def get_plot_type(callback: types.CallbackQuery):
+    plot_types = {
+        "disks", "charge", "used_free_ram", "cpu_used"
+    }
+
+    plot_kb = InlineKeyboardMarkup(row_width=3)
+    for el in plot_types:
+        plot_kb.insert(InlineKeyboardButton(text=el, callback_data=f"plot_type_{el}_{callback.data.split('_')[1]}"))
+
+    await callback.message.edit_reply_markup(reply_markup=plot_kb)
+    await callback.answer()
+
+
+async def get_plot_interval(callback: types.CallbackQuery):
+    plot_time_interval = {
+        "30 minutes", "60 minutes", "1440 minutes"
+    }
+
+    plot_kb = InlineKeyboardMarkup(row_width=3)
+    for el in plot_time_interval:
+        plot_kb.insert(
+            InlineKeyboardButton(text=el,
+                                 callback_data=
+                                 f"plot_creation_{callback.data.split('_')[2]}_{el}_{callback.data.split('_')[3]}"))
+
+    await callback.message.edit_reply_markup(reply_markup=plot_kb)
+    await callback.answer()
+
+
+async def create_and_return_plot(callback: types.CallbackQuery):
+    await callback.message.reply(callback.data)
+    await callback.answer()
+
+
 class FSMDevice(StatesGroup):
     name = State()
     ip = State()
@@ -215,11 +251,13 @@ async def load_notifications(message: types.Message, state: FSMContext):
 
 
 def reg_handlers_client(dp: Dispatcher):
-    dp.register_callback_query_handler(perform_action), lambda x: x.data and x.data.startswith('action_')
-    dp.register_callback_query_handler(get_resources), lambda x: x.data and x.data.startswith('resources_')
-    dp.register_callback_query_handler(update_device_notifications), lambda x: x.data and x.data.startswith(
-        'notifications_')
-    dp.register_callback_query_handler(delete_device), lambda x: x.data and x.data.startswith('delete_')
+    dp.register_callback_query_handler(get_plot_type, lambda x: x.data and x.data.startswith('plots_'))
+    dp.register_callback_query_handler(get_plot_interval, lambda x: x.data and x.data.startswith('plot_type_'))
+    dp.register_callback_query_handler(create_and_return_plot, lambda x: x.data and x.data.startswith('plot_creation_'))
+    dp.register_callback_query_handler(perform_action, lambda x: x.data and x.data.startswith('action_'))
+    dp.register_callback_query_handler(get_resources, lambda x: x.data and x.data.startswith('resources_'))
+    dp.register_callback_query_handler(update_device_notifications, lambda x: x.data and x.data.startswith('notifications_'))
+    dp.register_callback_query_handler(delete_device, lambda x: x.data and x.data.startswith('delete_'))
     dp.register_message_handler(get_all_devices, lambda message: 'Devices' in message.text)
     dp.register_message_handler(get_all_activity, lambda message: 'Activity' in message.text)
     dp.register_message_handler(start_notifications, lambda message: 'Start notification' in message.text)

@@ -370,4 +370,19 @@ def insert_action(device_id, action_id):
         return False
 
 
+def select_stat(device_id, stat_type, interval):
+    try:
+        select_query = "SELECT " + stat_type + ", " + REQUEST_TIME +\
+                       " FROM " + DEVICE_RESOURCES_TABLE_NAME + \
+                       " WHERE " + DEVICE_ID + ' = ' + str(device_id) + \
+                       " AND " + REQUEST_TIME + " > current_timestamp - interval " +\
+                       f"\'{interval}\'" + ";"
+
+        with connection.cursor() as cursor:
+            cursor.execute(select_query)
+            return cursor.fetchall()
+    except Exception as ex:
+        print(str(ex))
+        return False
+
 # TODO: Write query for returning device id

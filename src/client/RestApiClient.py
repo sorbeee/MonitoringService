@@ -6,7 +6,7 @@ import platform
 from time import sleep
 from utils import get_info
 
-url = "http://127.0.0.1:3000"
+url = "http://127.0.0.1:8000"
 device_id = 3   # TODO: Need to de initialized during first connection to the server
 timeout = 2     # TODO: Can be moved somewhere
 
