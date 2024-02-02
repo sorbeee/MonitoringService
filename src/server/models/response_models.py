@@ -64,3 +64,7 @@ class ActionList(BaseModel):
 class AvailableAction(BaseModel):
     action_id: int
     action_name: str
+
+
+class DeviceId(BaseModel):
+    device_id: int

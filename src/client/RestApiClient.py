@@ -4,10 +4,11 @@ import os
 import platform
 
 from time import sleep
-from utils import get_info
+from utils import get_info, get_my_ip
 
 url = "http://127.0.0.1:8000"
-device_id = 3   # TODO: Need to de initialized during first connection to the server
+req = requests.get(f"{url}/who_am_i/{get_my_ip()}")
+device_id = json.loads(req.text)['device_id']
 timeout = 2     # TODO: Can be moved somewhere
 
 

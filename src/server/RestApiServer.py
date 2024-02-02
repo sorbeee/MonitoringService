@@ -86,6 +86,15 @@ async def get_stat(device_id: int, stat_type: str, interval: str):
         return StreamingResponse(io.BytesIO(buffer.read()), media_type="image/png")
 
 
+@app.get("/who_am_i/{device_ip}")
+async def get_my_id(device_ip: str):
+    my_id = who_am_i(device_ip)
+    if len(my_id) <= 0:
+        raise HTTPException(status_code=400, detail="Not found your ID")
+    else:
+        return {"device_id": my_id[0][0]}
+
+
 @app.post("/device", response_model=ResponseModel)
 async def create_device(device: Device):
     if not insert_device(device.name, device.ip, device.notification):

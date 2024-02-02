@@ -1,4 +1,5 @@
 import platform
+import socket
 
 import psutil
 import wmi
@@ -69,3 +70,10 @@ def get_info():
         request_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     )
     return system_info
+
+
+def get_my_ip():
+    hostname = socket.gethostname()
+    IPAddr = socket.gethostbyname(hostname)
+
+    return IPAddr

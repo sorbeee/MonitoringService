@@ -1,3 +1,4 @@
+import io
 import socket
 
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -8,6 +9,8 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 from aiogram.utils import executor
 
 import requests
+
+import matplotlib.pyplot as plt
 
 from utils import *
 
@@ -42,7 +45,7 @@ async def get_all_devices(message: types.Message):
     for device in devices:
         inkb = InlineKeyboardMarkup(row_width=3).add(
             InlineKeyboardButton(text=f'Resources', callback_data=f'resources_{device["id"]}'),
-            InlineKeyboardButton(text=f'Plots', callback_data=f'plots_{device["id"]}'),
+            InlineKeyboardButton(text=f'Plots', callback_data=f'plots-{device["id"]}'),
             InlineKeyboardButton(text=f'Delete', callback_data=f'delete_{device["id"]}'),
         )
         inkb.add(InlineKeyboardButton(text=f'{"Stop" if device["notification"] else "Start"} notifications',
@@ -172,7 +175,7 @@ async def get_plot_type(callback: types.CallbackQuery):
 
     plot_kb = InlineKeyboardMarkup(row_width=3)
     for el in plot_types:
-        plot_kb.insert(InlineKeyboardButton(text=el, callback_data=f"plot_type_{el}_{callback.data.split('_')[1]}"))
+        plot_kb.insert(InlineKeyboardButton(text=el, callback_data=f"plot-type-{el}-{callback.data.split('-')[1]}"))
 
     await callback.message.edit_reply_markup(reply_markup=plot_kb)
     await callback.answer()
@@ -180,7 +183,7 @@ async def get_plot_type(callback: types.CallbackQuery):
 
 async def get_plot_interval(callback: types.CallbackQuery):
     plot_time_interval = {
-        "30 minutes", "60 minutes", "1440 minutes"
+        "30 minutes", "1 hour", "1 day"
     }
 
     plot_kb = InlineKeyboardMarkup(row_width=3)
@@ -188,14 +191,24 @@ async def get_plot_interval(callback: types.CallbackQuery):
         plot_kb.insert(
             InlineKeyboardButton(text=el,
                                  callback_data=
-                                 f"plot_creation_{callback.data.split('_')[2]}_{el}_{callback.data.split('_')[3]}"))
+                                 f"plot-creation-{callback.data.split('-')[2]}-{el}-{callback.data.split('-')[3]}"))
 
     await callback.message.edit_reply_markup(reply_markup=plot_kb)
     await callback.answer()
 
 
 async def create_and_return_plot(callback: types.CallbackQuery):
-    await callback.message.reply(callback.data)
+    stat_type = callback.data.split('-')[2]
+    interval = callback.data.split('-')[3]
+    device_id = callback.data.split('-')[4]
+    modified_string = interval.replace(" ", "%20")
+    response = requests.get(f"{url}/stat/{device_id}?stat_type={stat_type}&interval={modified_string}")
+    if response.status_code == 200:
+        image_data = response.content
+        buf = io.BytesIO(image_data)
+
+        await callback.message.reply_photo(buf)
+
     await callback.answer()
 
 
@@ -251,9 +264,9 @@ async def load_notifications(message: types.Message, state: FSMContext):
 
 
 def reg_handlers_client(dp: Dispatcher):
-    dp.register_callback_query_handler(get_plot_type, lambda x: x.data and x.data.startswith('plots_'))
-    dp.register_callback_query_handler(get_plot_interval, lambda x: x.data and x.data.startswith('plot_type_'))
-    dp.register_callback_query_handler(create_and_return_plot, lambda x: x.data and x.data.startswith('plot_creation_'))
+    dp.register_callback_query_handler(get_plot_type, lambda x: x.data and x.data.startswith('plots-'))
+    dp.register_callback_query_handler(get_plot_interval, lambda x: x.data and x.data.startswith('plot-type-'))
+    dp.register_callback_query_handler(create_and_return_plot, lambda x: x.data and x.data.startswith('plot-creation-'))
     dp.register_callback_query_handler(perform_action, lambda x: x.data and x.data.startswith('action_'))
     dp.register_callback_query_handler(get_resources, lambda x: x.data and x.data.startswith('resources_'))
     dp.register_callback_query_handler(update_device_notifications, lambda x: x.data and x.data.startswith('notifications_'))

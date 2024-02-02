@@ -385,4 +385,17 @@ def select_stat(device_id, stat_type, interval):
         print(str(ex))
         return False
 
+
+def who_am_i(device_ip):
+    try:
+        select_query = "SELECT " + ID +\
+                        " FROM " + DEVICE_TABLE_NAME +\
+                        " WHERE " + DEVICE_IP + " = " + f"\'{device_ip}\'" +\
+                        ";"
+        with connection.cursor() as cursor:
+            cursor.execute(select_query)
+            return cursor.fetchall()
+    except Exception as ex:
+        print(str(ex))
+
 # TODO: Write query for returning device id
